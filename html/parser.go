@@ -54,6 +54,20 @@ func (parser *parser) ConsumeWhitespace() string {
 	})
 }
 
+func (parser *parser) ConsumeComment() {
+	if !parser.StartsWith("<!--") {
+		return
+	}
+	text := ""
+	parser.ConsumeWhile(func(s string) bool {
+		text += s
+		return !strings.HasSuffix(text, "-->")
+	})
+	if !parser.EOF() {
+		parser.ConsumeChar()
+	}
+}
+
 func (parser *parser) ParseTagName() string {
 	return parser.ConsumeWhile(func(s string) bool {
 		matched, _ := regexp.Match("[A-Za-z0-9]", []byte(s))
@@ -121,9 +135,10 @@ func (parser *parser) ParseAttrValue() string {
 	value := parser.ConsumeWhile(func(s string) bool {
 		return s != openQuote
 	})
-	if value != openQuote {
+	if value == openQuote {
 		panic("Paniced because value equals to openQuote")
 	}
+	parser.ConsumeChar() // consume the quote.
 	return value
 }
 
@@ -143,6 +158,7 @@ func (parser *parser) ParseAttributes() node.AttrMap {
 func (parser *parser) ParseNodes() []node.Node {
 	nodes := make([]node.Node, 0)
 	for {
+		parser.ConsumeComment()
 		parser.ConsumeWhitespace()
 		if parser.EOF() || parser.StartsWith("</") {
 			break
