@@ -7,20 +7,25 @@ import (
 	"unicode"
 )
 
+// consuming: return the character and go to the next position
+
 // We make the struct private, cause we dont want anyone to modify something while the parser is working
 type parser struct {
 	position uint16
 	input    string
 }
 
+// returns the next char
 func (parser *parser) NextChar() string {
 	return strings.Split(parser.input, "")[parser.position+1]
 }
 
+// if the current string to the end starts with
 func (parser *parser) StartsWith(s string) bool {
 	return strings.HasPrefix(strings.Join(strings.Split(parser.input, "")[parser.position:], ""), s)
 }
 
+// if position is at the end
 func (parser *parser) EOF() bool {
 	return parser.position >= uint16(len(parser.input))
 }
