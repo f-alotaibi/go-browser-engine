@@ -9,15 +9,18 @@ import (
 
 // consuming: return the character and go to the next position
 
+// Another note: assert! in rust means if the expression is false, then it panics
+// Tldr: just flip the booleans
+
 // We make the struct private, cause we dont want anyone to modify something while the parser is working
 type parser struct {
 	position uint16
 	input    string
 }
 
-// returns the next char
+// returns the next char? it should be current
 func (parser *parser) NextChar() string {
-	return strings.Split(parser.input, "")[parser.position+1]
+	return strings.Split(parser.input, "")[parser.position]
 }
 
 // if the current string to the end starts with
@@ -74,27 +77,27 @@ func (parser *parser) ParseText() node.Node {
 }
 
 func (parser *parser) ParseElement() node.Node {
-	if parser.ConsumeChar() == "<" {
-		panic("Paniced because '<'")
+	if parser.ConsumeChar() != "<" {
+		panic("Paniced because is not '<'")
 	}
 	tagName := parser.ParseTagName()
 	attrs := parser.ParseAttributes()
-	if parser.ConsumeChar() == ">" {
+	if parser.ConsumeChar() != ">" {
 		panic("Paniced because '>'")
 	}
 
 	children := parser.ParseNodes()
 
-	if parser.ConsumeChar() == "<" {
+	if parser.ConsumeChar() != "<" {
 		panic("Paniced because '<'")
 	}
-	if parser.ConsumeChar() == "/" {
+	if parser.ConsumeChar() != "/" {
 		panic("Paniced because '/'")
 	}
-	if parser.ParseTagName() == tagName {
+	if parser.ParseTagName() != tagName {
 		panic("Paniced because '<'")
 	}
-	if parser.ConsumeChar() == ">" {
+	if parser.ConsumeChar() != ">" {
 		panic("Paniced because '>'")
 	}
 
@@ -103,7 +106,7 @@ func (parser *parser) ParseElement() node.Node {
 
 func (parser *parser) ParseAttr() (string, string) {
 	name := parser.ParseTagName()
-	if parser.ConsumeChar() == "=" {
+	if parser.ConsumeChar() != "=" {
 		panic("Paniced because '='")
 	}
 	value := parser.ParseAttrValue()
@@ -112,13 +115,13 @@ func (parser *parser) ParseAttr() (string, string) {
 
 func (parser *parser) ParseAttrValue() string {
 	openQuote := parser.ConsumeChar()
-	if openQuote == "\"" || openQuote == "'" {
+	if openQuote != "\"" && openQuote != "'" {
 		panic("Paniced because \" or '")
 	}
 	value := parser.ConsumeWhile(func(s string) bool {
 		return s != openQuote
 	})
-	if value == openQuote {
+	if value != openQuote {
 		panic("Paniced because value equals to openQuote")
 	}
 	return value
